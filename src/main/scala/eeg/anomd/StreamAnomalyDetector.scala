@@ -49,7 +49,8 @@ def main(args: Array[String]) {
 			b = currentDenominator + previousDenominator
 			c = 0
              	}
-		if ( ((currentDenominator + previousDenominator) > 1000) && (currentNumerator >= (currentCMA * 2.7)) ) 	//Checking for seizure
+		//Checking for seizure		
+		if ( ((currentDenominator + previousDenominator) > 1000) && (currentNumerator >= (currentCMA * 2.7)) ) 	
                 {
                    	a = previousNumerator
                         b = previousDenominator
@@ -106,16 +107,16 @@ def main(args: Array[String]) {
 	val firstTimeAndFile = timeAndFile.transform( rdd => rdd.context.makeRDD(rdd.top(1))).map(x=>(1L,(x._1,x._2)))
 	ssc.sparkContext.parallelize((2 to 24).map(i=> {
 						val counts = windowedEEG.map(x=> { val token = x.split(",")
-                                                (math.abs(math.round(token(i).toDouble)))
-                                                }).countByValue()
+                                                (math.abs(math.round(token(i).toDouble)))}).countByValue()
 
 
 
 	val topCounts = counts.map(_.swap).transform( rdd => rdd.context.makeRDD(rdd.top(60)))        
 
         val numer_denom = topCounts.map(x => (x._2 * x._1 , x._1 )).reduce((a, b) => (a._1 + b._1, a._2 + b._2))
-
-        val amplitudeTopK  = numer_denom.map(x => (x._1.toFloat/x._2))                              //Amplitude of Top-K for Normal Data  
+	
+	//Amplitude of Top-K for Normal Data
+        val amplitudeTopK  = numer_denom.map(x => (x._1.toFloat/x._2))                                
 	
         val CMA = amplitudeTopK.map(r => (1,(r.toDouble,1,1))).updateStateByKey[(Double,Int,Int)](updateSum).map(_._2)            
         val anomaly = CMA.map(x => (1L , x._3))
