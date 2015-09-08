@@ -1,5 +1,4 @@
 package eeg.anomd
-//import eeg.anomd.MyReg
 
 import kafka.producer._
 import org.apache.spark.SparkConf
