@@ -42,7 +42,8 @@ def main(args: Array[String]) {
 		val currentCMA : Double = (currentNumerator + previousNumerator)/(currentDenominator + previousDenominator) 
 		var a = 0.0; var b = 0; var c = 0; var d = 0.0; var e = 0.0; 
 		
-                if (  ((currentDenominator + previousDenominator) <= 1000) || ( ((currentDenominator + previousDenominator) > 1000) && (currentNumerator < (currentCMA * 2.7)) )  ) //First 1000 values are learning phase(Burn in phase) to converge to a decent CMA
+		//First 1000 values are learning phase(Burn in phase) to converge to a decent CMA
+                if (  ((currentDenominator + previousDenominator) <= 1000) || ( ((currentDenominator + previousDenominator) > 1000) && (currentNumerator < (currentCMA * 2.7)) )  ) 
                 {
 	              	a = currentNumerator + previousNumerator
 			b = currentDenominator + previousDenominator
