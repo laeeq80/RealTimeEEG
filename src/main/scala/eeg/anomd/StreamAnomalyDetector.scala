@@ -33,7 +33,7 @@ def main(args: Array[String]) {
                 System.err.println("Usage: StreamAnomalyDetector <First-topic>")
                 System.exit(1)
                 }       
-	// Comparing Windowed AmplitudeTopK with CMA and if Windowed AmplitudeTopKA is more than CMA * 2.8 for a period of 3 windows, then its a seizure 
+	// Comparing Windowed AmplitudeTopK with CMA and if Windowed AmplitudeTopKA is more than CMA * 2.7 for a period of 3 windows, then its a seizure 
 	val updateSum = (values: Seq[(Double,Int,Int)], state: Option[(Double,Int,Int)]) => Option[(Double,Int,Int)] {
 
         	val currentNumerator : Double = values.map(_._1).sum
@@ -44,7 +44,7 @@ def main(args: Array[String]) {
 		val currentCMA : Double = (currentNumerator + previousNumerator)/(currentDenominator + previousDenominator) 
 		var a = 0.0; var b = 0; var c = 0; var d = 0.0; var e = 0.0; 
 		
-                if (  ((currentDenominator + previousDenominator) <= 1000) || ( ((currentDenominator + previousDenominator) > 940) && (currentNumerator < (currentCMA * 2.7)) )  ) //First 50 values are learning phase(Burn in phase) to converge to a decent CMA
+                if (  ((currentDenominator + previousDenominator) <= 1000) || ( ((currentDenominator + previousDenominator) > 1000) && (currentNumerator < (currentCMA * 2.7)) )  ) //First 1000 values are learning phase(Burn in phase) to converge to a decent CMA
                 {
 	              	a = currentNumerator + previousNumerator
 			b = currentDenominator + previousDenominator
@@ -62,7 +62,7 @@ def main(args: Array[String]) {
 
         //Setting system properties
 	val conf = new SparkConf()
-	.setMaster("spark://10.1.4.90:7077")
+	.setMaster("spark://hostname:7077")
 	.setAppName("StreamAnomalyDetector")
 	.setSparkHome(System.getenv("SPARK_HOME"))
 	.setJars(List("target/scalaad-1.0-SNAPSHOT-jar-with-dependencies.jar"))
@@ -86,7 +86,7 @@ def main(args: Array[String]) {
         //.set("spark.shuffle.consolidateFiles","true")
         //.set("spark.shuffle.memoryFraction","0.2")¨
 
-        val zkQuorum = "10.1.4.144:2181,10.1.4.145:2181,10.1.4.146:2181,10.1.4.147:2181,10.1.4.148:2181"
+        val zkQuorum = "ip1:2181,ip2:2181,ip3:2181,ip4:2181,ip5:2181"
         val group = "test-group"
     
         // Create the context
@@ -103,9 +103,9 @@ def main(args: Array[String]) {
 	val timeAndFile = windowedEEG.map(x=> { val token = x.split(",")
                                                 (math.round(token(1).toDouble),token(0))
                                                 })
-        //val firstTimeAndFile = timeAndFile.transform( rdd => rdd.context.makeRDD(rdd.sortByKey(true).take(1))).map(x=>(1L,(x._1,x._2)))	
+     	
 	val firstTimeAndFile = timeAndFile.transform( rdd => rdd.context.makeRDD(rdd.top(1))).map(x=>(1L,(x._1,x._2)))
-	ssc.sparkContext.parallelize((2 to 11).map(i=> {
+	ssc.sparkContext.parallelize((2 to 24).map(i=> {
 						val counts = windowedEEG.map(x=> { val token = x.split(",")
                                                 (math.abs(math.round(token(i).toDouble)))
                                                 }).countByValue()
